@@ -1,12 +1,15 @@
 # Csv Serialization
-A core skill for your `Person` class would be the ability to save and load ([Serialize](https://learn.microsoft.com/en-us/dotnet/standard/serialization/)) with respect to a given a comma delimited string. There are two important considerations, however.
+
+A key precursor to **populate a ListBox with values from a custom class** is the ability of your `Person` class to save and load ([Serialize](https://learn.microsoft.com/en-us/dotnet/standard/serialization/)) with respect to a given a comma delimited string _(then once you do this see **Usage** section below for loading the `ListBox`)_. 
+
+There are two important considerations, however.
 
 - How to know with precision "what value goes where"
 - What if the actual value contains a comma?
 
 To address these concerns, an assumption will be made that we're dealing with a properly-formatted **.csv** file that includes a **header** row. This provides an index of how to deserialize it, and without it there is no assurance that we're putting the puzzle pieces back together in the right order. In addition, values that contain commas as part of the value will need to be  [_escaped_](https://hawq.apache.org/docs/userguide/2.3.0.0-incubating/datamgmt/load/g-escaping-in-csv-formatted-files.html#:~:text=By%20default%2C%20the%20escape%20character,declare%20a%20different%20escape%20character.).
 
-**CSV File with Header**
+**CSV File with Header and Escaping**
 ```
 Name,Description,InRingAbility,DrawValue,Charisma,Condition,Alignment,Weight,Gender,Morale,RingStyle,MicSkills
 The Rock,"He is the most electrifying name in sports entertainment. Movie star, too. ",80,100,90,80,,220,Male,100,Basic,100
@@ -25,9 +28,46 @@ ___
 [![screenshot][1]][1]
 
 ___
-**From CSV single line**
 
-First, give the `Person` class the ability to construct an instance given a _single line_ of the **.csv** file. We'll need a [RegEx](https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-8.0) expression to ignore the escaped commas, and an additional helper to remove double-quored that have been appended in the process.
+
+**Provide Header**
+
+First, converting in either direction will benefit if `Person` can generate the file header with the property names (as a **static** property of the class).
+
+```
+class Person
+{
+    /// <summary>
+    /// Converter to CSV string for Property Names
+    /// </summary>
+    public static string[] CsvHeaderNames
+    {
+        get
+        {
+            if (_csvHeaderNames is null)
+            {
+                _csvHeaderNames =
+                    typeof(Person)
+                        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                        .Select(_ => _.Name)
+                        .ToArray();
+            }
+            return _csvHeaderNames;
+        }
+    }
+    static string[]? _csvHeaderNames = null;
+
+    public static string CsvHeader => string.Join(",", CsvHeaderNames);
+    .
+    .
+    .
+}
+```
+___
+
+**Import from CSV single line**
+
+This block gives the `Person` class the ability to construct an instance given a _single line_ of the **.csv** file. We'll need a [RegEx](https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-8.0) expression to ignore the escaped commas, and an additional helper to remove double-quotes that have been appended in the process.
 ```
 class Person
 {
@@ -80,45 +120,12 @@ class Person
     .
 }
 ```
-
-**Provide Header**
-
-Before converting a `Person` to comma-separated string, there needs to be a way to generate the file header with the property names.
-
-```
-class Person
-{
-    /// <summary>
-    /// Converter to CSV string for Property Names
-    /// </summary>
-    public static string[] CsvHeaderNames
-    {
-        get
-        {
-            if (_csvHeaderNames is null)
-            {
-                _csvHeaderNames =
-                    typeof(Person)
-                        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                        .Select(_ => _.Name)
-                        .ToArray();
-            }
-            return _csvHeaderNames;
-        }
-    }
-    static string[]? _csvHeaderNames = null;
-
-    public static string CsvHeader => string.Join(",", CsvHeaderNames);
-    .
-    .
-    .
-}
-```
 ___
 
-Next, override the `ToString()` method so that `Person` enumerates its own properties. This is where we need to make sure that "values containing commas" are surrounded by double quotes to escape them.
+**Export to single CSV line**
 
-**To CSV**
+This block overrides the `ToString()` method so that `Person` enumerates its own properties. This is where we need to make sure that "values containing commas" are surrounded by double quotes to escape them.
+
 ```
    ...
     const string IgnoreEscapedCommas = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";
@@ -145,7 +152,6 @@ Next, override the `ToString()` method so that `Person` enumerates its own prope
     }
     ...
 ```
-___
 
 
 ___
