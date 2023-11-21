@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -14,6 +15,7 @@ namespace serialization_intro
             Assembly.GetEntryAssembly().GetName().Name,
             "roster.json"
             );
+        BindingList<Person> Persons { get; set; }
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -21,10 +23,10 @@ namespace serialization_intro
             {
                 makeNewFile();
             }
-
             // Load the json file into a list in memory
             var json = File.ReadAllText(_filePath);
             Persons = JsonConvert.DeserializeObject<BindingList<Person>>(json);
+
             listBox.DataSource = Persons;
             listBox.DisplayMember = "Name";
 
@@ -58,6 +60,7 @@ namespace serialization_intro
                             textBoxDescription.ForeColor = Color.White;
                             var json = JsonConvert.SerializeObject(Persons, Formatting.Indented);
                             File.WriteAllText(_filePath, json);
+                            listBox.Focus();
                         }
                         break;
                 }
@@ -109,8 +112,6 @@ namespace serialization_intro
             File.WriteAllText(_filePath, json);
             System.Diagnostics.Process.Start("notepad.exe", _filePath);
         }
-
-        BindingList<Person> Persons { get; set; }
     }
 
     class Person

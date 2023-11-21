@@ -104,6 +104,7 @@
             textBoxDescription.ReadOnly = true;
             textBoxDescription.Size = new Size(448, 74);
             textBoxDescription.TabIndex = 2;
+            textBoxDescription.TabStop = false;
             // 
             // MainForm
             // 
