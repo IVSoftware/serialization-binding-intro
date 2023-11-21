@@ -32,7 +32,13 @@
             listBox = new ListBox();
             labelName = new Label();
             textBoxDescription = new TextBox();
+            tableLayoutPanel2 = new TableLayoutPanel();
+            buttonFromJson = new Button();
+            buttonToJson = new Button();
+            buttonFromCsv = new Button();
+            buttonToCsv = new Button();
             tableLayoutPanel1.SuspendLayout();
+            tableLayoutPanel2.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -51,6 +57,7 @@
             tableLayoutPanel1.Controls.Add(listBox, 0, 0);
             tableLayoutPanel1.Controls.Add(labelName, 2, 0);
             tableLayoutPanel1.Controls.Add(textBoxDescription, 2, 1);
+            tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 1, 8);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -106,6 +113,67 @@
             textBoxDescription.TabIndex = 2;
             textBoxDescription.TabStop = false;
             // 
+            // tableLayoutPanel2
+            // 
+            tableLayoutPanel2.ColumnCount = 5;
+            tableLayoutPanel1.SetColumnSpan(tableLayoutPanel2, 7);
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel2.Controls.Add(buttonFromJson, 0, 0);
+            tableLayoutPanel2.Controls.Add(buttonToJson, 1, 0);
+            tableLayoutPanel2.Controls.Add(buttonFromCsv, 2, 0);
+            tableLayoutPanel2.Controls.Add(buttonToCsv, 3, 0);
+            tableLayoutPanel2.Dock = DockStyle.Fill;
+            tableLayoutPanel2.Location = new Point(255, 372);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 1;
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel2.Size = new Size(541, 74);
+            tableLayoutPanel2.TabIndex = 3;
+            // 
+            // buttonFromJson
+            // 
+            buttonFromJson.Dock = DockStyle.Fill;
+            buttonFromJson.Location = new Point(3, 3);
+            buttonFromJson.Name = "buttonFromJson";
+            buttonFromJson.Size = new Size(124, 68);
+            buttonFromJson.TabIndex = 0;
+            buttonFromJson.Text = "From Json";
+            buttonFromJson.UseVisualStyleBackColor = true;
+            // 
+            // buttonToJson
+            // 
+            buttonToJson.Dock = DockStyle.Fill;
+            buttonToJson.Location = new Point(133, 3);
+            buttonToJson.Name = "buttonToJson";
+            buttonToJson.Size = new Size(124, 68);
+            buttonToJson.TabIndex = 0;
+            buttonToJson.Text = "To Json";
+            buttonToJson.UseVisualStyleBackColor = true;
+            // 
+            // buttonFromCsv
+            // 
+            buttonFromCsv.Dock = DockStyle.Fill;
+            buttonFromCsv.Location = new Point(263, 3);
+            buttonFromCsv.Name = "buttonFromCsv";
+            buttonFromCsv.Size = new Size(124, 68);
+            buttonFromCsv.TabIndex = 0;
+            buttonFromCsv.Text = "From Csv";
+            buttonFromCsv.UseVisualStyleBackColor = true;
+            // 
+            // buttonToCsv
+            // 
+            buttonToCsv.Dock = DockStyle.Fill;
+            buttonToCsv.Location = new Point(393, 3);
+            buttonToCsv.Name = "buttonToCsv";
+            buttonToCsv.Size = new Size(124, 68);
+            buttonToCsv.TabIndex = 0;
+            buttonToCsv.Text = "To Csv";
+            buttonToCsv.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -114,9 +182,11 @@
             ClientSize = new Size(800, 450);
             Controls.Add(tableLayoutPanel1);
             Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Roster";
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            tableLayoutPanel2.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -126,5 +196,10 @@
         private ListBox listBox;
         private Label labelName;
         private TextBox textBoxDescription;
+        private TableLayoutPanel tableLayoutPanel2;
+        private Button buttonToCsv;
+        private Button buttonFromCsv;
+        private Button buttonToJson;
+        private Button buttonFromJson;
     }
 }

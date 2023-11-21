@@ -2,33 +2,121 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace serialization_intro
 {
     public partial class MainForm : Form
     {
-        public MainForm() => InitializeComponent();
+        public MainForm()
+        {
+            InitializeComponent();
+            listBox.DataSource = Persons;
+            listBox.DisplayMember = "Name";
+            buttonToCsv.Click += (sender, e) =>
+            {
+                if (Persons.Any() || warnEmpty())
+                {
+                    List<string> builder = new List<string>
+                    {
+                        Person.CsvHeader,
+                    };
+                    foreach (var person in Persons)
+                    {
+                        builder.Add(person.ToString());
+                    }
+                    Directory.CreateDirectory(Path.GetDirectoryName(_filePathCsv));
+                    File.WriteAllLines(_filePathCsv, builder.ToArray());
+                    Process.Start("notepad.exe", _filePathCsv);
+                }
+            };
+            buttonFromCsv.Click += async (sender, e) =>
+            {
+                UseWaitCursor = true;
+                await Task.Delay(1000);
+                Persons.Clear();
+                if (File.Exists(_filePathCsv))
+                {
+                    string[] lines = File.ReadAllLines(_filePathCsv);
+                    if (lines.FirstOrDefault() is string header)
+                    {
+                        for (int i = 1; i < lines.Length; i++)
+                        {
+                            if (!string.IsNullOrEmpty(lines[i]))
+                            {
+                                Persons.Add(lines[i]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(false, "Expecting header");
+                    }
+                }
+                UseWaitCursor = false;
+            };
+            buttonFromJson.Click += async(sender, e) =>
+            {
+                UseWaitCursor = true;
+                await Task.Delay(1000);
+                Persons.Clear();
+                if (File.Exists(_filePathJson))
+                {
+                    var persons = 
+                    JsonConvert
+                    .DeserializeObject<BindingList<Person>>(
+                        File.ReadAllText( _filePathJson)
+                    );
+                    foreach (var person in persons)
+                    {
+                        Persons.Add(person);
+                    }
+                }
+                UseWaitCursor = false;
+            };
+            buttonToJson.Click += (sender, e) =>
+            {
+                if (Persons.Any() || warnEmpty())
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(_filePathJson));
+                    File.WriteAllText(_filePathJson, JsonConvert.SerializeObject(Persons, Formatting.Indented));
+                    Process.Start("notepad.exe", _filePathJson);
+                }
+            };
+        }
+        bool warnEmpty()
+        {
+            return !DialogResult.Cancel.Equals(
+                MessageBox.Show(
+                    "Person list is empty. Save anyway?",
+                    "Confirm",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question
+                ));
+        }
+        BindingList<Person> Persons { get; } = new BindingList<Person>();
 
-        string _filePath = Path.Combine(
+        string _filePathJson = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Assembly.GetEntryAssembly().GetName().Name,
             "roster.json"
             );
-        BindingList<Person> Persons { get; set; }
+
+        string _filePathCsv = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Assembly.GetEntryAssembly().GetName().Name,
+            "roster.csv"
+            );
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            if(!File.Exists(_filePath))
+            if(!File.Exists(_filePathJson))
             {
                 makeNewFile();
             }
             // Load the json file into a list in memory
-            var json = File.ReadAllText(_filePath);
-            Persons = JsonConvert.DeserializeObject<BindingList<Person>>(json);
-
-            listBox.DataSource = Persons;
-            listBox.DisplayMember = "Name";
+            var json = File.ReadAllText(_filePathJson);
 
             labelName.DataBindings.Add("Text", listBox.DataSource, "Name");
             // Two-way binding for Description
@@ -59,7 +147,7 @@ namespace serialization_intro
                             textBoxDescription.BackColor = Color.FromArgb(0,0,192);
                             textBoxDescription.ForeColor = Color.White;
                             var json = JsonConvert.SerializeObject(Persons, Formatting.Indented);
-                            File.WriteAllText(_filePath, json);
+                            File.WriteAllText(_filePathJson, json);
                             listBox.Focus();
                         }
                         break;
@@ -107,15 +195,103 @@ namespace serialization_intro
                     Gender = "Male",
                 },
             };
-            Directory.CreateDirectory(Path.GetDirectoryName(_filePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(_filePathJson));
             var json = JsonConvert.SerializeObject(personsList, Formatting.Indented);
-            File.WriteAllText(_filePath, json);
-            System.Diagnostics.Process.Start("notepad.exe", _filePath);
+            File.WriteAllText(_filePathJson, json);
+            System.Diagnostics.Process.Start("notepad.exe", _filePathJson);
         }
     }
 
     class Person
     {
+        public Person() { }
+
+        public static implicit operator Person?(string csvLine)
+        {
+            if(csvLine == CsvHeader)
+            {
+                // Can't make a person from the header row.
+                return null;
+            }
+            else
+            {
+                var person = new Person();
+                var values = Regex.Split(csvLine, IgnoreEscapedCommas);
+                for (int i = 0; i < CsvHeaderNames.Length; i++)
+                {
+                    var propertyName = CsvHeaderNames[i];
+                    var value = localRemoveOutsideQuotes(values[i]);
+                    if (typeof(Person).GetProperty(propertyName) is PropertyInfo pi)
+                    {
+                        switch (pi.PropertyType.Name)
+                        {
+                            case nameof(Int32):
+                                pi.SetValue(person, Int32.Parse(value));
+                                break;
+                            case nameof(String):
+                                pi.SetValue(person, value);
+                                break;
+                            default:
+                                Debug.Assert(false, "An unhandled type has been added to this class.");
+                                break;
+                        }
+                    }
+                    string localRemoveOutsideQuotes(string s)
+                    {
+                        if (s.Contains(',') && s.StartsWith("\"") && s.EndsWith("\""))
+                        {
+                            return s.Substring(1, s.Length - 2);
+                        }
+                        else return s;
+                    }
+                }
+                return person;
+            }
+        }
+        const string IgnoreEscapedCommas = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";
+
+        /// <summary>
+        /// Converter to CSV string for values
+        /// </summary>
+        public override string ToString()
+        {
+            return
+                string.Join(
+                    ",",
+                    typeof(Person)
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                      .Select(_ => localEscape(_.GetValue(this)?.ToString()??string.Empty)));
+            string localEscape(string mightHaveCommas)
+            {
+                if (mightHaveCommas.Contains(","))
+                {
+                    return $@"""{mightHaveCommas}""";
+                }
+                else return mightHaveCommas;
+            }
+        }
+        /// <summary>
+        /// Converter to CSV string for Property Names
+        /// </summary>
+        public static string[] CsvHeaderNames
+        {
+            get
+            {
+                if (_csvHeaderNames is null)
+                {
+                    _csvHeaderNames =
+                        typeof(Person)
+                            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                            .Select(_ => _.Name)
+                            .ToArray();
+                }
+                return _csvHeaderNames;
+            }
+        }
+        static string[]? _csvHeaderNames = null;
+
+        public static string CsvHeader => string.Join(",", CsvHeaderNames);
+
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
 
