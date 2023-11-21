@@ -33,8 +33,8 @@ namespace serialization_intro
             buttonFromCsv.Click += async (sender, e) =>
             {
                 UseWaitCursor = true;
-                await Task.Delay(1000);
                 Persons.Clear();
+                await Task.Delay(1000); // See the cleared list
                 if (File.Exists(_filePathCsv))
                 {
                     string[] lines = File.ReadAllLines(_filePathCsv);
@@ -58,8 +58,8 @@ namespace serialization_intro
             buttonFromJson.Click += async(sender, e) =>
             {
                 UseWaitCursor = true;
-                await Task.Delay(1000);
                 Persons.Clear();
+                await Task.Delay(1000); // See the cleared list
                 if (File.Exists(_filePathJson))
                 {
                     var persons = 
