@@ -34,7 +34,7 @@ namespace serialization_intro
             {
                 UseWaitCursor = true;
                 Persons.Clear();
-                await Task.Delay(1000); // See the cleared list
+                await Task.Delay(1000); // Observe the cleared list
                 if (File.Exists(_filePathCsv))
                 {
                     string[] lines = File.ReadAllLines(_filePathCsv);
@@ -59,7 +59,7 @@ namespace serialization_intro
             {
                 UseWaitCursor = true;
                 Persons.Clear();
-                await Task.Delay(1000); // See the cleared list
+                await Task.Delay(1000); // Observe the cleared list
                 if (File.Exists(_filePathJson))
                 {
                     var persons = 
