@@ -81,6 +81,7 @@
             // 
             // labelName
             // 
+            labelName.BackColor = Color.FromArgb(0, 102, 203);
             tableLayoutPanel1.SetColumnSpan(labelName, 5);
             labelName.Dock = DockStyle.Fill;
             labelName.ForeColor = Color.White;
@@ -96,6 +97,7 @@
             textBoxDescription.BackColor = Color.FromArgb(0, 0, 192);
             tableLayoutPanel1.SetColumnSpan(textBoxDescription, 5);
             textBoxDescription.Dock = DockStyle.Fill;
+            textBoxDescription.ForeColor = Color.White;
             textBoxDescription.Location = new Point(296, 45);
             textBoxDescription.Multiline = true;
             textBoxDescription.Name = "textBoxDescription";
