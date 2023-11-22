@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using IVSoftware.Portable.Csv;
 
 namespace serialization_intro
 {
@@ -19,11 +20,11 @@ namespace serialization_intro
                 {
                     List<string> builder = new List<string>
                     {
-                        Person.CsvHeader,
+                        typeof(Person).GetCsvHeader(),
                     };
                     foreach (var person in Persons)
                     {
-                        builder.Add(person.ToString());
+                        builder.Add(person.ToCsvLine());
                     }
                     Directory.CreateDirectory(Path.GetDirectoryName(_filePathCsv));
                     File.WriteAllLines(_filePathCsv, builder.ToArray());
@@ -33,8 +34,7 @@ namespace serialization_intro
             buttonFromCsv.Click += async (sender, e) =>
             {
                 UseWaitCursor = true;
-                Persons.Clear();
-                await Task.Delay(1000); // Observe the cleared list
+                await localClearAndWait();
                 if (File.Exists(_filePathCsv))
                 {
                     string[] lines = File.ReadAllLines(_filePathCsv);
@@ -42,9 +42,10 @@ namespace serialization_intro
                     {
                         for (int i = 1; i < lines.Length; i++)
                         {
-                            if (!string.IsNullOrEmpty(lines[i]))
+                            var line = lines[i];
+                            if (!string.IsNullOrEmpty(line))
                             {
-                                Persons.Add(lines[i]);
+                                Persons.Add(typeof(Person).FromCsvLine<Person>(line));
                             }
                         }
                     }
@@ -58,8 +59,7 @@ namespace serialization_intro
             buttonFromJson.Click += async(sender, e) =>
             {
                 UseWaitCursor = true;
-                Persons.Clear();
-                await Task.Delay(1000); // Observe the cleared list
+                await localClearAndWait();
                 if (File.Exists(_filePathJson))
                 {
                     var persons = 
@@ -83,6 +83,14 @@ namespace serialization_intro
                     Process.Start("notepad.exe", _filePathJson);
                 }
             };
+            async Task localClearAndWait()
+            {
+                if(Persons.Any())
+                {
+                    Persons.Clear();
+                    await Task.Delay(1000); // Observe the cleared list
+                }
+            }
         }
         bool warnEmpty()
         {
