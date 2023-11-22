@@ -39,7 +39,7 @@ namespace serialization_intro
                 if (File.Exists(_filePathCsv))
                 {
                     string[] lines = File.ReadAllLines(_filePathCsv);
-                    if (lines.FirstOrDefault() is string header)
+                    if (lines.FirstOrDefault() is string header && header == typeof(Person).GetCsvHeader())
                     {
                         for (int i = 1; i < lines.Length; i++)
                         {
