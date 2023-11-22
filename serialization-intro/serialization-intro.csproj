@@ -10,11 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="IVSoftware.Portable.Csv.SingleInstanceSerializer" Version="1.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\_portable\IVSoftware.Portable.Csv.SingleInstanceSerializer\IVSoftware.Portable.Csv.SingleInstanceSerializer\IVSoftware.Portable.Csv.SingleInstanceSerializer.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@ namespace serialization_intro
 {
     public partial class MainForm : Form
     {
+        BindingList<Person> Persons { get; } = new BindingList<Person>();
         public MainForm()
         {
             InitializeComponent();
@@ -102,18 +103,17 @@ namespace serialization_intro
                     MessageBoxIcon.Question
                 ));
         }
-        BindingList<Person> Persons { get; } = new BindingList<Person>();
-
-        string _filePathJson = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Assembly.GetEntryAssembly().GetName().Name,
-            "roster.json"
-            );
 
         string _filePathCsv = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Assembly.GetEntryAssembly().GetName().Name,
             "roster.csv"
+            );
+
+        string _filePathJson = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Assembly.GetEntryAssembly().GetName().Name,
+            "roster.json"
             );
 
         protected override void OnLoad(EventArgs e)
@@ -213,93 +213,6 @@ namespace serialization_intro
     class Person
     {
         public Person() { }
-
-        public static implicit operator Person?(string csvLine)
-        {
-            if(csvLine == CsvHeader)
-            {
-                // Can't make a person from the header row.
-                return null;
-            }
-            else
-            {
-                var person = new Person();
-                var values = Regex.Split(csvLine, IgnoreEscapedCommas);
-                for (int i = 0; i < CsvHeaderNames.Length; i++)
-                {
-                    var propertyName = CsvHeaderNames[i];
-                    var value = localRemoveOutsideQuotes(values[i]);
-                    if (typeof(Person).GetProperty(propertyName) is PropertyInfo pi)
-                    {
-                        switch (pi.PropertyType.Name)
-                        {
-                            case nameof(Int32):
-                                pi.SetValue(person, Int32.Parse(value));
-                                break;
-                            case nameof(String):
-                                pi.SetValue(person, value);
-                                break;
-                            default:
-                                Debug.Assert(false, "An unhandled type has been added to this class.");
-                                break;
-                        }
-                    }
-                    string localRemoveOutsideQuotes(string s)
-                    {
-                        if (s.Contains(',') && s.StartsWith("\"") && s.EndsWith("\""))
-                        {
-                            return s.Substring(1, s.Length - 2);
-                        }
-                        else return s;
-                    }
-                }
-                return person;
-            }
-        }
-        const string IgnoreEscapedCommas = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";
-
-        /// <summary>
-        /// Converter to CSV string for values
-        /// </summary>
-        public override string ToString()
-        {
-            return
-                string.Join(
-                    ",",
-                    typeof(Person)
-                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                      .Select(_ => localEscape(_.GetValue(this)?.ToString()??string.Empty)));
-            string localEscape(string mightHaveCommas)
-            {
-                if (mightHaveCommas.Contains(","))
-                {
-                    return $@"""{mightHaveCommas}""";
-                }
-                else return mightHaveCommas;
-            }
-        }
-        /// <summary>
-        /// Converter to CSV string for Property Names
-        /// </summary>
-        public static string[] CsvHeaderNames
-        {
-            get
-            {
-                if (_csvHeaderNames is null)
-                {
-                    _csvHeaderNames =
-                        typeof(Person)
-                            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                            .Select(_ => _.Name)
-                            .ToArray();
-                }
-                return _csvHeaderNames;
-            }
-        }
-        static string[]? _csvHeaderNames = null;
-
-        public static string CsvHeader => string.Join(",", CsvHeaderNames);
-
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
 
